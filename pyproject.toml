@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentpolicy"
+version = "1.0.0"
+description = "Merchant-Side Financial Policy Layer for Agentic Commerce"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.22.0",
+    "pydantic>=2.0.0",
+    "pyyaml>=6.0",
+    "pyjwt>=2.8.0",
+    "requests>=2.31.0",
+    "rich>=13.0.0"
+]
+
+[project.scripts]
+agentpolicy = "agentpolicy.cli:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
