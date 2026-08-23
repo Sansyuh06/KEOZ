@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "merchant_name": "acme-cloud-solutions",
+  "policy_version": "1.0",
+  "endpoints": {
+    "negotiation": "http://localhost:8000/api/agent/negotiate",
+    "payment": "http://localhost:8000/api/agent/pay",
+    "status": "http://localhost:8000/api/agent/status"
+  },
+  "capabilities": {
+    "autonomous_transactions": true,
+    "negotiation_supported": true,
+    "max_autonomous_limit_inr": 500000,
+    "accepted_instruments": [
+      "card",
+      "upi_mandate",
+      "x402",
+      "razorpay_payment_link"
+    ],
+    "settlement_currency": "INR"
+  },
+  "products": [
+    {
+      "id": "pro_annual",
+      "name": "Pro Annual License",
+      "max_seats": 50,
+      "auto_renew": true,
+      "requires_approval": false,
+      "public_price_inr": 50000
+    },
+    {
+      "id": "enterprise_custom",
+      "name": "Enterprise Custom Suite",
+      "max_seats": 500,
+      "auto_renew": false,
+      "requires_approval": true,
+      "public_price_inr": 200000
+    }
+  ],
+  "agent_identity": {
+    "required": true,
+    "trusted_issuers": [
+      "acme-corp",
+      "bigco-procurement",
+      "enterprise-agent-hub"
+    ]
+  }
+}

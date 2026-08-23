@@ -1,0 +1,13 @@
+{
+  "x402_version": "1.0",
+  "payment_recipient": "acme-cloud-solutions",
+  "currency": "INR",
+  "payment_methods": [
+    "card",
+    "upi_mandate",
+    "x402",
+    "razorpay_payment_link"
+  ],
+  "proof_verification_endpoint": "http://localhost:8000/api/agent/pay",
+  "facilitator": "razorpay-test-gateway"
+}

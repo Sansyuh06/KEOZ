@@ -1,0 +1,42 @@
+{
+  "policy_version": "1.0",
+  "max_autonomous_inr": 500000,
+  "discount_ceiling_pct": 8.0,
+  "margin_floor_pct": 0.37,
+  "floor_prices": {
+    "pro_annual": 45000,
+    "enterprise_custom": 150000
+  },
+  "list_prices": {
+    "pro_annual": 50000,
+    "enterprise_custom": 200000
+  },
+  "unit_costs": {
+    "pro_annual": 28350,
+    "enterprise_custom": 90000
+  },
+  "max_quantity_per_product": {
+    "pro_annual": 50,
+    "enterprise_custom": 500
+  },
+  "negotiable_products": [
+    "pro_annual"
+  ],
+  "non_negotiable_terms": [
+    "unlimited_refunds",
+    "zero_liability",
+    "post_settlement_dispute"
+  ],
+  "accepted_instruments": [
+    "card",
+    "upi_mandate",
+    "x402",
+    "razorpay_payment_link"
+  ],
+  "agent_initiated_refund": false,
+  "human_approval_rules": [
+    "amount_inr > 500000",
+    "customer_tier == \"new\"",
+    "payment_instrument == \"net_terms\""
+  ]
+}

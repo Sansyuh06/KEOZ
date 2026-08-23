@@ -1,0 +1,54 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "acme-cloud-solutions Agentic Commerce API",
+    "version": "1.0",
+    "description": "AgentPolicy-governed endpoint for autonomous buyer agents"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000"
+    }
+  ],
+  "paths": {
+    "/.well-known/agent-commerce.json": {
+      "get": {
+        "summary": "ACP Discovery Manifest",
+        "responses": {
+          "200": {
+            "description": "Returns commerce capabilities"
+          }
+        }
+      }
+    },
+    "/api/agent/negotiate": {
+      "post": {
+        "summary": "Submit purchase or negotiation proposal",
+        "responses": {
+          "200": {
+            "description": "Offer accepted or counter proposed"
+          },
+          "202": {
+            "description": "Requires human approval"
+          },
+          "403": {
+            "description": "Policy violation"
+          }
+        }
+      }
+    },
+    "/api/agent/pay": {
+      "post": {
+        "summary": "Execute payment with x402 proof or authorization token",
+        "responses": {
+          "200": {
+            "description": "Settled & fulfilled"
+          },
+          "402": {
+            "description": "Payment Required"
+          }
+        }
+      }
+    }
+  }
+}
