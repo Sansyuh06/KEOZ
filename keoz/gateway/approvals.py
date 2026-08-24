@@ -116,8 +116,57 @@ class ApprovalBridge:
 
         return record, approval_url
 
+    async def create_approval_request_async(
+        self,
+        buyer_request: BuyerRequest,
+        proposed_result: NegotiationResult,
+        trigger_reasons: List[str],
+        policy_version: str
+    ) -> Tuple[ApprovalRecord, str]:
+        """Async create approval request with direct aiosqlite persist."""
+        await init_db()
+        approval_id = f"appr_{uuid.uuid4().hex[:10]}"
+        approval_url = f"{self.base_url}/approve/{approval_id}"
+        req_dict = buyer_request.model_dump()
+        deal_dict = proposed_result.model_dump()
+        now = time.time()
+
+        record = ApprovalRecord(
+            id=approval_id,
+            request=req_dict,
+            proposed_deal=deal_dict,
+            trigger_reasons=trigger_reasons,
+            policy_version=policy_version,
+            created_at=now,
+            status="pending"
+        )
+        self._store[approval_id] = record
+
+        async with get_db() as db:
+            await db.execute(
+                """INSERT OR REPLACE INTO approvals 
+                   (id, status, request, proposed_deal, trigger_reasons, policy_version, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (approval_id, "pending", json.dumps(req_dict), json.dumps(deal_dict), json.dumps(trigger_reasons), policy_version, now)
+            )
+            await db.commit()
+
+        return record, approval_url
+
     def get_approval(self, approval_id: str) -> Optional[ApprovalRecord]:
         return self._store.get(approval_id)
+
+    async def get_approval_async(self, approval_id: str) -> Optional[ApprovalRecord]:
+        if approval_id in self._store:
+            return self._store[approval_id]
+        async with get_db() as db:
+            cursor = await db.execute("SELECT * FROM approvals WHERE id = ?", (approval_id,))
+            row = await cursor.fetchone()
+            if row:
+                rec = self._row_to_record(row)
+                self._store[approval_id] = rec
+                return rec
+        return None
 
     def list_pending(self) -> List[ApprovalRecord]:
         return [rec for rec in self._store.values() if rec.status == "pending"]
@@ -168,5 +217,28 @@ class ApprovalBridge:
         notes: str = "",
         counter_terms: Optional[Dict[str, Any]] = None
     ) -> Optional[ApprovalRecord]:
-        """Async decision handler."""
-        return self.decide(approval_id, decision, decided_by, notes, counter_terms)
+        """Async decision handler writing to aiosqlite."""
+        record = self._store.get(approval_id)
+        if not record:
+            record = await self.get_approval_async(approval_id)
+        if not record:
+            return None
+
+        now = time.time()
+        record.status = decision
+        record.decided_by = decided_by
+        record.decided_at = now
+        record.decision_notes = notes
+        record.counter_terms = counter_terms
+
+        async with get_db() as db:
+            await db.execute(
+                """UPDATE approvals SET 
+                   status = ?, decided_by = ?, decided_at = ?, decision_notes = ?, counter_terms = ?
+                   WHERE id = ?""",
+                (decision, decided_by, now, notes,
+                 json.dumps(counter_terms) if counter_terms else None, approval_id)
+            )
+            await db.commit()
+
+        return record
