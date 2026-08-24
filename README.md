@@ -1,13 +1,4 @@
----
-title: Keoz
-emoji: 🛡️
-colorFrom: blue
-colorTo: indigo
-sdk: gradio
-sdk_version: 4.44.0
-app_file: app.py
-pinned: false
-short_description: Merchant Command Center for Agentic Commerce
+Hugging Face: https://huggingface.co/spaces/Sansyuh/keoz
 ---
 
 # KEOZ
