@@ -1,8 +1,23 @@
+---
+title: Keoz - Merchant Command Center
+emoji: 🛡️
+colorFrom: cyan
+colorTo: indigo
+sdk: gradio
+sdk_version: 4.44.0
+app_file: app.py
+pinned: false
+short_description: Merchant Command Center for Agentic Commerce
+---
+
 # KEOZ
 
 **The Merchant Command Center for Agentic Commerce**  
 *Built for the Razorpay Hackathon 2026 — Track 01: AI Growth & Agentic Commerce*
 
+[![Tests](https://img.shields.io/badge/pytest-25%20passed-10b981.svg)](tests/)
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-38bdf8.svg)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-06b6d4.svg)](https://fastapi.tiangolo.com)
 
 ---
 
@@ -113,8 +128,8 @@ Individually valid terms can combine into an unprofitable deal:
 
 ```bash
 # Clone the repository
-git clone https://github.com/Sansyuh06/agentpolicy.git
-cd agentpolicy
+git clone https://github.com/Sansyuh06/KEOZ.git
+cd KEOZ
 
 # Install in editable mode
 pip install -e .
@@ -264,5 +279,6 @@ python -m pytest
 │   └── merchant_bigco.yaml   # Generous Enterprise Policy (30% Floor)
 ├── tests/                # 25 automated pytest unit and integration tests
 ├── run_demo.py           # 3-Minute Terminal Demo Script
+├── app.py                # Hugging Face Spaces Entrypoint
 └── pyproject.toml        # Build and dependency configuration
 ```
