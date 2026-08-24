@@ -5,7 +5,6 @@
 
 [![Tests](https://img.shields.io/badge/pytest-passing-emerald.svg)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://python.org)
-[![License](https://img.shields.io/badge/license-MIT-purple.svg)](LICENSE)
 
 ---
 
