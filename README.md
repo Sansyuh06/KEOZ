@@ -58,6 +58,19 @@ Here is how KEOZ handles it:
 
 ---
 
+## Why Hugging Face Spaces? (Public Cloud Gateway & ACP Verification)
+
+KEOZ is deployed live to Hugging Face Spaces at **[https://huggingface.co/spaces/Sansyuh/keoz](https://huggingface.co/spaces/Sansyuh/keoz)** for three critical architectural reasons:
+
+1. **Public Agent Commerce Protocol (ACP) Discovery**:
+   Autonomous buyer bots running across the internet require a publicly reachable endpoint to discover merchant terms (`https://sansyuh-keoz.hf.space/.well-known/agent-commerce.json`) without requiring local tunneling (ngrok).
+2. **Live Counterparty Sandbox for External AI Agents**:
+   Third-party autonomous procurement bots can send live purchase proposals directly to `POST https://sansyuh-keoz.hf.space/api/agent/negotiate` and verify cryptographic x402 payment requirements against a live cloud gateway.
+3. **Zero-Setup Evaluator & Merchant Access**:
+   Provides hackathon judges and merchant finance teams with an instant, zero-install Command Center in the cloud to test real-time WebSocket telemetry (`/ws/metrics`), run the 6-attack red team suite, and review 1-click approvals without running Python locally.
+
+---
+
 ## LLM Parsing: Real + Deterministic Fallback
 
 - **Real LLM**: Set `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` for natural language parsing.
