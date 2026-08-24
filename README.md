@@ -1,13 +1,13 @@
 ---
-title: Keoz - Merchant Command Center
+title: Keoz
 emoji: 🛡️
-colorFrom: cyan
+colorFrom: blue
 colorTo: indigo
 sdk: gradio
 sdk_version: 4.44.0
 app_file: app.py
 pinned: false
-short_description: Pre-Razorpay Policy & Authorization Engine for Agentic Commerce
+short_description: Merchant Command Center for Agentic Commerce
 ---
 
 # KEOZ
