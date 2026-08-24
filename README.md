@@ -202,6 +202,4 @@ tests/test_negotiation.py::test_bounds_clamp_and_privacy_buffer PASSED   [100%]
 
 ---
 
-## 📄 License
 
-MIT License — see [LICENSE](LICENSE) for details.
