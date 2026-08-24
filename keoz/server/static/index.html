@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KEOZ — The Merchant Command Center for Agentic Commerce</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-dark: #070a12;
+      --bg-surface: #0e1526;
+      --bg-card: rgba(14, 21, 38, 0.85);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(6, 182, 212, 0.4);
+      --primary: #06b6d4;
+      --primary-glow: rgba(6, 182, 212, 0.25);
+      --accent-purple: #8b5cf6;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-mono: 'Fira Code', monospace;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(6, 182, 212, 0.1) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+    }
+
+    .font-heading { font-family: var(--font-heading); }
+    .font-mono { font-family: var(--font-mono); }
+    .glass-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+    }
+    .glass-card:hover {
+      border-color: rgba(6, 182, 212, 0.3);
+      box-shadow: 0 0 25px rgba(6, 182, 212, 0.08);
+    }
+    .nav-btn.active {
+      background: rgba(6, 182, 212, 0.15);
+      border-color: rgba(6, 182, 212, 0.5);
+      color: #38bdf8;
+    }
+    .pulse-dot {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.15); }
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(14, 21, 38, 0.5); }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(6, 182, 212, 0.4); }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+  <!-- TOP HEADER -->
+  <header class="sticky top-0 z-50 bg-[#070a12]/90 backdrop-blur-md border-b border-white/10 px-6 py-3.5">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center font-heading font-extrabold text-white text-lg shadow-lg shadow-cyan-500/20">
+            K
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-heading font-bold text-xl tracking-tight text-white">KEOZ</span>
+              <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 font-mono">TRACK 01</span>
+            </div>
+            <p class="text-[11px] text-gray-400 leading-none">The Merchant Command Center for Agentic Commerce</p>
+          </div>
+        </div>
+
+        <!-- Merchant Switcher -->
+        <div class="hidden md:flex items-center gap-2 ml-6 pl-6 border-l border-white/10">
+          <span class="text-xs text-gray-400 font-medium">Active Merchant:</span>
+          <select id="merchant-selector" onchange="switchMerchant(this.value)" class="bg-[#0e1526] text-xs font-mono text-cyan-300 border border-white/15 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-cyan-400 cursor-pointer">
+            <option value="acme-saas">acme-saas (Strict 37% Floor)</option>
+            <option value="bigco-enterprise">bigco-enterprise (Generous 30% Floor)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+          <span id="ws-status">LIVE SYNC</span>
+        </div>
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-mono">
+          <span>Policy:</span>
+          <span id="header-policy-version" class="font-semibold text-white">v1.0</span>
+        </div>
+        <a href="/docs" target="_blank" class="text-xs text-gray-400 hover:text-white px-2.5 py-1.5 rounded-lg border border-white/10 hover:border-white/20 transition-all">API Docs</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION TABS -->
+  <div class="max-w-7xl w-full mx-auto px-6 pt-5">
+    <div class="flex gap-2 p-1.5 bg-[#0e1526]/80 backdrop-blur-md rounded-xl border border-white/10 overflow-x-auto">
+      <button onclick="switchTab('overview')" id="tab-btn-overview" class="nav-btn active flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium text-gray-300 border border-transparent transition-all">
+        📊 Command Center
+      </button>
+      <button onclick="switchTab('approvals')" id="tab-btn-approvals" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium text-gray-300 border border-transparent transition-all">
+        ⚡ Approvals Inbox <span id="pending-badge" class="px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-mono">0</span>
+      </button>
+      <button onclick="switchTab('playground')" id="tab-btn-playground" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium text-gray-300 border border-transparent transition-all">
+        🤖 AI Buyer Simulator
+      </button>
+      <button onclick="switchTab('adversarial')" id="tab-btn-adversarial" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium text-gray-300 border border-transparent transition-all">
+        🛡️ Red Team Suite
+      </button>
+      <button onclick="switchTab('policy')" id="tab-btn-policy" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium text-gray-300 border border-transparent transition-all">
+        ⚙️ Policy DSL Editor
+      </button>
+      <button onclick="switchTab('audit')" id="tab-btn-audit" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium text-gray-300 border border-transparent transition-all">
+        📜 Immutable Audit Log
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="max-w-7xl w-full mx-auto px-6 py-6 flex-1 space-y-6">
+
+    <!-- KPI ROW (Always Visible) -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div class="glass-card p-4 rounded-xl relative overflow-hidden">
+        <div class="flex justify-between items-start">
+          <span class="text-xs text-gray-400 font-medium">Revenue Protected</span>
+          <span class="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-1.5 py-0.5 rounded">+14.2%</span>
+        </div>
+        <p id="kpi-revenue-protected" class="text-2xl font-heading font-bold text-white mt-1">₹42.5L</p>
+        <span class="text-[11px] text-gray-400 mt-1 block">Zero unauthorized spend</span>
+      </div>
+
+      <div class="glass-card p-4 rounded-xl relative overflow-hidden">
+        <div class="flex justify-between items-start">
+          <span class="text-xs text-gray-400 font-medium">Margin Saved</span>
+          <span class="text-[10px] text-cyan-400 font-mono bg-cyan-500/10 px-1.5 py-0.5 rounded">Secret Floor</span>
+        </div>
+        <p id="kpi-margin-saved" class="text-2xl font-heading font-bold text-cyan-400 mt-1">₹6.8L</p>
+        <span class="text-[11px] text-gray-400 mt-1 block">Preserved via 37% floor</span>
+      </div>
+
+      <div class="glass-card p-4 rounded-xl relative overflow-hidden">
+        <div class="flex justify-between items-start">
+          <span class="text-xs text-gray-400 font-medium">Chargeback Win Rate</span>
+          <span class="text-[10px] text-emerald-400 font-mono bg-emerald-500/10 px-1.5 py-0.5 rounded">Razorpay</span>
+        </div>
+        <p id="kpi-chargeback-winrate" class="text-2xl font-heading font-bold text-emerald-400 mt-1">93%</p>
+        <span class="text-[11px] text-gray-400 mt-1 block">13 of 14 won autonomously</span>
+      </div>
+
+      <div class="glass-card p-4 rounded-xl relative overflow-hidden">
+        <div class="flex justify-between items-start">
+          <span class="text-xs text-gray-400 font-medium">Mandate Recovery</span>
+          <span class="text-[10px] text-indigo-400 font-mono bg-indigo-500/10 px-1.5 py-0.5 rounded">e-Mandates</span>
+        </div>
+        <p id="kpi-mandate-rate" class="text-2xl font-heading font-bold text-indigo-300 mt-1">94%</p>
+        <span class="text-[11px] text-gray-400 mt-1 block">45 of 48 collected</span>
+      </div>
+
+      <div class="glass-card p-4 rounded-xl relative overflow-hidden">
+        <div class="flex justify-between items-start">
+          <span class="text-xs text-gray-400 font-medium">Attacks Blocked</span>
+          <span class="text-[10px] text-rose-400 font-mono bg-rose-500/10 px-1.5 py-0.5 rounded">100% Rate</span>
+        </div>
+        <p id="kpi-attacks-blocked" class="text-2xl font-heading font-bold text-rose-400 mt-1">36 / 36</p>
+        <span class="text-[11px] text-gray-400 mt-1 block">Adversarial neutralization</span>
+      </div>
+    </div>
+
+    <!-- TAB 1: OVERVIEW & COMMAND CENTER -->
+    <div id="tab-overview" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Live Cash Flow & Volume -->
+        <div class="glass-card p-5 rounded-2xl lg:col-span-2 space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h2 class="font-heading font-bold text-lg text-white">Live Agentic Cash Flow & Revenue</h2>
+              <p class="text-xs text-gray-400">Autonomous settlement velocity vs human approval escalations</p>
+            </div>
+            <div class="flex items-center gap-3 text-xs font-mono">
+              <span class="flex items-center gap-1.5 text-emerald-400"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> Inflow</span>
+              <span class="flex items-center gap-1.5 text-rose-400"><span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span> COGS Outflow</span>
+              <span class="flex items-center gap-1.5 text-cyan-400"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span> Net Profit</span>
+            </div>
+          </div>
+          <div class="h-64 w-full">
+            <canvas id="cashflow-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Agentic Commerce Funnel -->
+        <div class="glass-card p-5 rounded-2xl space-y-4">
+          <h2 class="font-heading font-bold text-lg text-white">🤖 Agentic Commerce Pipeline</h2>
+          <div class="space-y-3 font-mono text-xs">
+            <div class="p-3 rounded-xl bg-white/5 border border-white/10 flex justify-between items-center">
+              <span class="text-gray-300">AI Counterparty Buyers</span>
+              <span id="stat-ai-total" class="font-bold text-white text-sm">142</span>
+            </div>
+            <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex justify-between items-center">
+              <span class="text-emerald-300">Auto-Closed (Within Bounds)</span>
+              <span id="stat-ai-auto" class="font-bold text-emerald-400 text-sm">118 (83%)</span>
+            </div>
+            <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex justify-between items-center">
+              <span class="text-amber-300">Escalated (HTTP 202 Paused)</span>
+              <span id="stat-ai-escalated" class="font-bold text-amber-400 text-sm">24 (17%)</span>
+            </div>
+            <div class="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex justify-between items-center">
+              <span class="text-cyan-300">Total Settled GMV</span>
+              <span id="stat-ai-revenue" class="font-bold text-cyan-400 text-sm">₹1.84 Cr</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Attack Neutralization Feed & Recent Activity -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Attack Feed -->
+        <div class="glass-card p-5 rounded-2xl space-y-4">
+          <div class="flex justify-between items-center">
+            <h2 class="font-heading font-bold text-lg text-white flex items-center gap-2">
+              🛡️ Live Attack Neutralization Feed
+            </h2>
+            <span class="text-xs font-mono text-rose-400 px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20">Active Shield</span>
+          </div>
+          <div id="live-attack-stream" class="space-y-2.5 max-h-72 overflow-y-auto pr-1 font-mono text-xs">
+            <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-start gap-3">
+              <span class="text-rose-400 font-bold">BLOCKED</span>
+              <div class="flex-1">
+                <p class="text-white font-medium">[MARGIN_FLOOR_VIOLATION] Composed 8% discount + Net-90 terms rejected (Effective Margin 34.2% &lt; 37.0% floor)</p>
+                <span class="text-[10px] text-gray-400">redteam-bot-06 • 4-Layer Composed Validator • 0.8ms</span>
+              </div>
+            </div>
+            <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-start gap-3">
+              <span class="text-rose-400 font-bold">BLOCKED</span>
+              <div class="flex-1">
+                <p class="text-white font-medium">[PARAMETER_BOUNDS_VIOLATION] 80% discount demand clamped to ₹46,500/seat</p>
+                <span class="text-[10px] text-gray-400">redteam-bot-01 • Bounds Clamping &amp; Privacy Buffer • 0.4ms</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Events Activity Log -->
+        <div class="glass-card p-5 rounded-2xl space-y-4">
+          <div class="flex justify-between items-center">
+            <h2 class="font-heading font-bold text-lg text-white flex items-center gap-2">
+              ⚡ Real-time System Stream
+            </h2>
+            <span class="text-xs font-mono text-cyan-400 px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20">WebSocket Pulse</span>
+          </div>
+          <div id="live-events-stream" class="space-y-2.5 max-h-72 overflow-y-auto pr-1 font-mono text-xs">
+            <div class="p-3 rounded-xl bg-white/5 border border-white/10 flex items-start gap-3">
+              <span class="text-cyan-400">INFO</span>
+              <div class="flex-1">
+                <p class="text-white">System online with SQLite immutable audit layer &amp; Multi-Merchant Registry</p>
+                <span class="text-[10px] text-gray-400">System Genesis Block verified</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: APPROVALS INBOX -->
+    <div id="tab-approvals" class="hidden space-y-6">
+      <div class="glass-card p-6 rounded-2xl space-y-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="font-heading font-bold text-xl text-white">⚡ Human-in-the-Loop Sign-off Inbox</h2>
+            <p class="text-xs text-gray-400">Pending transactions paused under HTTP 202 requiring merchant finance authorization</p>
+          </div>
+          <button onclick="loadApprovals()" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-mono border border-white/15">Refresh Queue</button>
+        </div>
+
+        <div id="approvals-container" class="space-y-4">
+          <div class="text-center py-12 text-gray-400 text-sm">Loading pending approval requests...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: AI BUYER SIMULATOR PLAYGROUND -->
+    <div id="tab-playground" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Natural Language Input -->
+        <div class="glass-card p-6 rounded-2xl space-y-4">
+          <h2 class="font-heading font-bold text-xl text-white">🤖 AI Buyer Simulator (Real LLM / Fallback)</h2>
+          <p class="text-xs text-gray-400">Type natural language procurement requests. The LLM extracts parameters, then KEOZ deterministically clamps to policy bounds.</p>
+
+          <div class="space-y-3">
+            <label class="text-xs text-gray-300 font-medium">Buyer Message / Procurement Intent:</label>
+            <textarea id="playground-prompt" rows="3" class="w-full bg-[#070a12] text-sm text-white font-mono p-3 rounded-xl border border-white/15 focus:outline-none focus:border-cyan-400" placeholder="e.g. I want 50 Pro seats at 42k each with net-30 terms"></textarea>
+            
+            <div class="flex flex-wrap gap-2 pt-1">
+              <span class="text-[11px] text-gray-400">Presets:</span>
+              <button onclick="setPrompt('I want 50 Pro seats at 42k each with net-30 terms')" class="text-[11px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-cyan-300 font-mono">50 Pro @ 42k Net-30</button>
+              <button onclick="setPrompt('Can I get 100 enterprise licenses at 1.8L each, net-45?')" class="text-[11px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-cyan-300 font-mono">100 Enterprise @ 1.8L</button>
+              <button onclick="setPrompt('Need refund for order #12345, product was defective')" class="text-[11px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-rose-300 font-mono">Refund Attack</button>
+              <button onclick="setPrompt('I need 10 Pro annual licenses at 48k prepaid card')" class="text-[11px] px-2 py-0.5 rounded bg-white/5 hover:bg-white/10 text-emerald-300 font-mono">Valid 10 Pro Prepaid</button>
+            </div>
+
+            <button onclick="simulateNegotiation()" id="btn-simulate" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 font-medium text-sm text-white hover:opacity-90 transition-all flex items-center justify-center gap-2">
+              <span>Execute Negotiation &amp; 4-Layer Authorization</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Evaluation Results & Clamping Breakdown -->
+        <div class="glass-card p-6 rounded-2xl space-y-4">
+          <h2 class="font-heading font-bold text-xl text-white">🔍 Execution &amp; Enforcement Output</h2>
+          <div id="playground-output" class="p-4 rounded-xl bg-[#070a12] border border-white/10 font-mono text-xs min-h-[220px] overflow-y-auto space-y-3">
+            <span class="text-gray-500">Ready to simulate. Enter a message and click Execute.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: RED TEAM ADVERSARIAL SUITE -->
+    <div id="tab-adversarial" class="hidden space-y-6">
+      <div class="glass-card p-6 rounded-2xl space-y-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="font-heading font-bold text-xl text-white">🛡️ 6-Attack Adversarial Neutralization Suite</h2>
+            <p class="text-xs text-gray-400">Stress tests deep discounts, margin drain, overspend, forbidden terms, volume attacks, and autonomous refunds.</p>
+          </div>
+          <button onclick="runAdversarialSuite()" id="btn-run-redteam" class="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-500 to-amber-600 font-medium text-xs text-white hover:opacity-90 transition-all flex items-center gap-2">
+            <span>🔥 Run Full Attack Suite</span>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left font-mono text-xs">
+            <thead>
+              <tr class="border-b border-white/10 text-gray-400">
+                <th class="py-3 px-4">Attack Vector</th>
+                <th class="py-3 px-4">Description</th>
+                <th class="py-3 px-4">Enforcement Code</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4">Latency</th>
+              </tr>
+            </thead>
+            <tbody id="adversarial-table-body" class="divide-y divide-white/5">
+              <tr>
+                <td colspan="5" class="py-8 text-center text-gray-500">Click "Run Full Attack Suite" to test all 6 vectors.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: POLICY DSL LIVE EDITOR -->
+    <div id="tab-policy" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="glass-card p-6 rounded-2xl lg:col-span-2 space-y-4">
+          <div class="flex justify-between items-center">
+            <h2 class="font-heading font-bold text-xl text-white">⚙️ Policy DSL YAML Editor</h2>
+            <button onclick="savePolicyYaml()" class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-xs font-semibold text-gray-900 transition-all">
+              ⚡ Recompile &amp; Hot-Reload
+            </button>
+          </div>
+          <textarea id="policy-yaml-editor" rows="18" class="w-full bg-[#070a12] text-xs text-cyan-300 font-mono p-4 rounded-xl border border-white/15 focus:outline-none focus:border-cyan-400"></textarea>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-4">
+          <h2 class="font-heading font-bold text-lg text-white">Active Bounds Summary</h2>
+          <div id="policy-bounds-summary" class="space-y-3 font-mono text-xs">
+            <div class="text-gray-500">Loading compiled bounds...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: IMMUTABLE AUDIT LOG EXPLORER -->
+    <div id="tab-audit" class="hidden space-y-6">
+      <div class="glass-card p-6 rounded-2xl space-y-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="font-heading font-bold text-xl text-white">📜 Immutable SQLite Audit Trail</h2>
+            <p class="text-xs text-gray-400">SHA-256 hash-chained decision atoms with contradiction detection</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="audit-contradiction-badge" class="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">0 Contradictions</span>
+            <button onclick="loadAuditTrail()" class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-mono border border-white/15">Replay</button>
+          </div>
+        </div>
+
+        <div id="audit-log-container" class="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+          <div class="text-center py-12 text-gray-500 font-mono text-xs">Replaying audit trail...</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let activeMerchant = 'acme-saas';
+    let cashFlowChart = null;
+
+    // 1. WEBSOCKET CONNECTION
+    function connectWebSocket() {
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${location.host}/ws/metrics`;
+      const ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        document.getElementById('ws-status').textContent = 'LIVE SYNC';
+        document.getElementById('ws-status').parentElement.className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono';
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const snapshot = JSON.parse(event.data);
+          updateMetricsUI(snapshot);
+        } catch(e) {}
+      };
+
+      ws.onclose = () => {
+        document.getElementById('ws-status').textContent = 'RECONNECTING';
+        document.getElementById('ws-status').parentElement.className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono';
+        setTimeout(connectWebSocket, 2500);
+      };
+    }
+
+    function updateMetricsUI(s) {
+      if (s.revenue_protected_inr) {
+        document.getElementById('kpi-revenue-protected').textContent = '₹' + (s.revenue_protected_inr / 100000).toFixed(1) + 'L';
+      }
+      if (s.margin_saved_inr) {
+        document.getElementById('kpi-margin-saved').textContent = '₹' + (s.margin_saved_inr / 100000).toFixed(1) + 'L';
+      }
+      if (s.chargebacks_total !== undefined) {
+        const rate = s.chargebacks_total > 0 ? Math.round((s.chargebacks_won / s.chargebacks_total) * 100) : 100;
+        document.getElementById('kpi-chargeback-winrate').textContent = rate + '%';
+      }
+      if (s.mandates_total !== undefined) {
+        const rate = s.mandates_total > 0 ? Math.round((s.mandates_recovered / s.mandates_total) * 100) : 100;
+        document.getElementById('kpi-mandate-rate').textContent = rate + '%';
+      }
+      if (s.attacks_total !== undefined) {
+        document.getElementById('kpi-attacks-blocked').textContent = `${s.attacks_blocked} / ${s.attacks_total}`;
+      }
+      if (s.policy_version) {
+        document.getElementById('header-policy-version').textContent = s.policy_version;
+      }
+      if (s.ai_buyers_total !== undefined) {
+        document.getElementById('stat-ai-total').textContent = s.ai_buyers_total;
+        const autoPct = s.ai_buyers_total > 0 ? Math.round((s.ai_auto_closed / s.ai_buyers_total) * 100) : 0;
+        document.getElementById('stat-ai-auto').textContent = `${s.ai_auto_closed} (${autoPct}%)`;
+        const escPct = s.ai_buyers_total > 0 ? Math.round((s.ai_escalated / s.ai_buyers_total) * 100) : 0;
+        document.getElementById('stat-ai-escalated').textContent = `${s.ai_escalated} (${escPct}%)`;
+        document.getElementById('stat-ai-revenue').textContent = '₹' + (s.ai_revenue_inr / 10000000).toFixed(2) + ' Cr';
+      }
+
+      // Add to event stream
+      if (s.recent_events && s.recent_events.length > 0) {
+        const container = document.getElementById('live-events-stream');
+        container.innerHTML = s.recent_events.slice(0, 15).map(ev => `
+          <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-start gap-2.5">
+            <span class="text-[10px] text-cyan-400 font-mono">${ev.time || 'NOW'}</span>
+            <div class="flex-1">
+              <span class="text-[10px] px-1.5 py-0.2 rounded bg-cyan-500/10 text-cyan-300 font-mono">${ev.type}</span>
+              <p class="text-white mt-0.5">${ev.message}</p>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Update Chart
+      if (cashFlowChart) {
+        const now = new Date().toLocaleTimeString();
+        if (cashFlowChart.data.labels.length > 12) {
+          cashFlowChart.data.labels.shift();
+          cashFlowChart.data.datasets.forEach(ds => ds.data.shift());
+        }
+        cashFlowChart.data.labels.push(now);
+        cashFlowChart.data.datasets[0].data.push((s.cashflow_inflow || 18450000) / 100000);
+        cashFlowChart.data.datasets[1].data.push((s.cashflow_outflow || 5420000) / 100000);
+        cashFlowChart.data.datasets[2].data.push(((s.cashflow_inflow || 18450000) - (s.cashflow_outflow || 5420000)) / 100000);
+        cashFlowChart.update('none');
+      }
+    }
+
+    // 2. TAB SWITCHING
+    function switchTab(tabId) {
+      ['overview', 'approvals', 'playground', 'adversarial', 'policy', 'audit'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        document.getElementById(`tab-btn-${t}`).classList.remove('active');
+      });
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      document.getElementById(`tab-btn-${tabId}`).classList.add('active');
+
+      if (tabId === 'approvals') loadApprovals();
+      if (tabId === 'policy') loadPolicyEditor();
+      if (tabId === 'audit') loadAuditTrail();
+    }
+
+    // 3. MERCHANT SWITCHING
+    function switchMerchant(mId) {
+      activeMerchant = mId;
+      loadPolicyEditor();
+      loadApprovals();
+    }
+
+    // 4. CHART INIT
+    function initChart() {
+      const ctx = document.getElementById('cashflow-chart').getContext('2d');
+      cashFlowChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['10:00', '10:05', '10:10', '10:15', '10:20', '10:25'],
+          datasets: [
+            {
+              label: 'Inflow (₹ Lakhs)',
+              data: [120, 135, 148, 162, 175, 184.5],
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.05)',
+              tension: 0.35,
+              fill: true
+            },
+            {
+              label: 'COGS Outflow (₹ Lakhs)',
+              data: [38, 42, 45, 49, 52, 54.2],
+              borderColor: '#f43f5e',
+              backgroundColor: 'transparent',
+              borderDash: [4, 4],
+              tension: 0.35
+            },
+            {
+              label: 'Net Profit (₹ Lakhs)',
+              data: [82, 93, 103, 113, 123, 130.3],
+              borderColor: '#06b6d4',
+              backgroundColor: 'rgba(6, 182, 212, 0.1)',
+              tension: 0.35,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b', font: { family: 'Fira Code', size: 10 } } },
+            y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#64748b', font: { family: 'Fira Code', size: 10 } } }
+          }
+        }
+      });
+    }
+
+    // 5. APPROVALS INBOX
+    async function loadApprovals() {
+      const container = document.getElementById('approvals-container');
+      try {
+        const res = await fetch('/api/approvals/all');
+        const data = await res.json();
+        const pending = data.filter(a => a.status === 'pending');
+        document.getElementById('pending-badge').textContent = pending.length;
+
+        if (data.length === 0) {
+          container.innerHTML = '<div class="text-center py-12 text-gray-500 font-mono text-xs">No approval requests logged yet.</div>';
+          return;
+        }
+
+        container.innerHTML = data.map(appr => {
+          const req = appr.request || {};
+          const deal = appr.proposed_deal || {};
+          const isPending = appr.status === 'pending';
+          const statusColors = {
+            pending: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
+            approved: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30',
+            rejected: 'bg-rose-500/10 text-rose-300 border-rose-500/30',
+            countered: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30'
+          };
+
+          return `
+            <div class="glass-card p-5 rounded-xl border border-white/10 space-y-4">
+              <div class="flex justify-between items-start">
+                <div>
+                  <div class="flex items-center gap-2.5">
+                    <span class="font-mono font-bold text-white">${appr.id}</span>
+                    <span class="px-2 py-0.5 rounded-full border text-[10px] font-mono uppercase ${statusColors[appr.status] || 'bg-white/10'}">${appr.status}</span>
+                    <span class="text-xs text-gray-400 font-mono">v${appr.policy_version}</span>
+                  </div>
+                  <p class="text-xs text-gray-300 mt-1">Buyer: <span class="text-cyan-300 font-mono">${req.buyer_id || 'AI Buyer'}</span> • Product: <span class="text-white font-mono">${req.product_id}</span> • Qty: <span class="text-white font-mono">${req.quantity}</span></p>
+                </div>
+                <div class="text-right">
+                  <span class="text-xs text-gray-400">Total Commitment</span>
+                  <p class="text-lg font-heading font-bold text-white">₹${((deal.final_price_inr || 45000) * (req.quantity || 1)).toLocaleString()}</p>
+                </div>
+              </div>
+
+              <!-- Trigger Reasons -->
+              <div class="p-3 rounded-lg bg-white/5 border border-white/10 text-xs font-mono space-y-1">
+                <span class="text-amber-300 font-medium">Escalation Triggers:</span>
+                <ul class="list-disc list-inside text-gray-300">
+                  ${(appr.trigger_reasons || []).map(r => `<li>${r}</li>`).join('')}
+                </ul>
+              </div>
+
+              ${isPending ? `
+                <div class="flex gap-3 pt-2">
+                  <button onclick="decideApproval('${appr.id}', 'approved')" class="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-xs font-semibold text-gray-900 transition-all flex-1">
+                    ✓ Approve &amp; Issue Token
+                  </button>
+                  <button onclick="decideApproval('${appr.id}', 'rejected')" class="px-4 py-2 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition-all">
+                    ✕ Reject
+                  </button>
+                </div>
+              ` : `
+                <div class="text-xs font-mono text-gray-400 border-t border-white/10 pt-2 flex justify-between">
+                  <span>Decided by: <strong class="text-white">${appr.decided_by || 'merchant_lead'}</strong></span>
+                  <span>Notes: ${appr.decision_notes || 'None'}</span>
+                </div>
+              `}
+            </div>
+          `;
+        }).join('');
+      } catch(e) {
+        container.innerHTML = '<div class="text-center py-12 text-rose-400 font-mono text-xs">Failed to load approvals.</div>';
+      }
+    }
+
+    async function decideApproval(id, decision) {
+      try {
+        await fetch(`/api/approvals/${id}/decide`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ decision: decision, decided_by: 'vp_finance', notes: 'Merchant console action' })
+        });
+        loadApprovals();
+      } catch(e) {}
+    }
+
+    // 6. PLAYGROUND / SIMULATOR
+    function setPrompt(text) {
+      document.getElementById('playground-prompt').value = text;
+    }
+
+    async function simulateNegotiation() {
+      const prompt = document.getElementById('playground-prompt').value.trim();
+      if (!prompt) return;
+
+      const output = document.getElementById('playground-output');
+      output.innerHTML = '<div class="text-cyan-400">Parsing natural language offer and running 4-layer authorization...</div>';
+
+      try {
+        const res = await fetch(`/api/agent/negotiate?merchant_id=${activeMerchant}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            raw_text: prompt,
+            buyer_id: "demo-simulator-bot",
+            customer_tier: "standard"
+          })
+        });
+
+        const data = await res.json();
+        const isAuthorized = res.status === 200;
+        const isEscalated = res.status === 202;
+
+        output.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex justify-between items-center border-b border-white/10 pb-2">
+              <span class="text-gray-400">HTTP Response:</span>
+              <span class="px-2 py-0.5 rounded text-xs font-bold ${isAuthorized ? 'bg-emerald-500/20 text-emerald-400' : isEscalated ? 'bg-amber-500/20 text-amber-400' : 'bg-rose-500/20 text-rose-400'}">
+                HTTP ${res.status} ${isAuthorized ? 'AUTHORIZED' : isEscalated ? 'ESCALATED (HTTP 202)' : 'DENIED (403)'}
+              </span>
+            </div>
+
+            <div>
+              <span class="text-gray-400">Merchant Policy:</span>
+              <span class="text-cyan-300 font-bold ml-1">${data.merchant || activeMerchant} (v${data.policy_version || '1.0'})</span>
+            </div>
+
+            <div>
+              <span class="text-gray-400">Counter Price:</span>
+              <span class="text-white font-bold ml-1">${data.counter_price_inr ? '₹' + data.counter_price_inr.toLocaleString() + '/seat' : 'N/A'}</span>
+              ${data.discount_pct ? `<span class="text-emerald-400 text-[11px] ml-2">(${data.discount_pct}% discount)</span>` : ''}
+            </div>
+
+            ${data.reason ? `
+              <div class="p-2.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px]">
+                <strong>Reason:</strong> ${data.reason}
+              </div>
+            ` : ''}
+
+            ${data.approval_url ? `
+              <div class="p-2.5 rounded bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-[11px] break-all">
+                <strong>Approval URL:</strong> <a href="${data.approval_url}" class="underline text-cyan-200" target="_blank">${data.approval_url}</a>
+              </div>
+            ` : ''}
+
+            ${isAuthorized ? `
+              <div class="p-2.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[11px]">
+                ✓ Ready for Razorpay x402 Cryptographic Settlement
+              </div>
+            ` : ''}
+          </div>
+        `;
+      } catch(e) {
+        output.innerHTML = `<div class="text-rose-400">Error: ${e.message}</div>`;
+      }
+    }
+
+    // 7. RED TEAM SUITE
+    async function runAdversarialSuite() {
+      const btn = document.getElementById('btn-run-redteam');
+      btn.disabled = true;
+      btn.innerHTML = '<span>Executing 6 Attacks...</span>';
+
+      const tbody = document.getElementById('adversarial-table-body');
+      tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-cyan-400">Simulating adversarial attacks against active policy...</td></tr>';
+
+      try {
+        const res = await fetch(`/api/test/adversarial?merchant_id=${activeMerchant}`, { method: 'POST' });
+        const data = await res.json();
+        const results = data.results || [];
+
+        tbody.innerHTML = results.map(r => {
+          const isBlocked = r.blocked;
+          return `
+            <tr class="hover:bg-white/5 transition-colors">
+              <td class="py-3 px-4 font-bold text-cyan-300">${r.attack_name}</td>
+              <td class="py-3 px-4 text-gray-300 max-w-xs">${r.description}</td>
+              <td class="py-3 px-4 text-amber-300 font-mono">${r.code}</td>
+              <td class="py-3 px-4">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isBlocked ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}">
+                  ${isBlocked ? 'BLOCKED' : 'PASSED'}
+                </span>
+              </td>
+              <td class="py-3 px-4 text-gray-400 font-mono">${r.latency_ms}ms</td>
+            </tr>
+          `;
+        }).join('');
+      } catch(e) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-rose-400">Failed to run suite: ${e.message}</td></tr>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>🔥 Run Full Attack Suite</span>';
+      }
+    }
+
+    // 8. POLICY EDITOR
+    async function loadPolicyEditor() {
+      try {
+        const res = await fetch(`/api/merchants/${activeMerchant}/policy`);
+        const data = await res.json();
+        document.getElementById('policy-yaml-editor').value = data.yaml || '';
+        
+        const b = data.bounds || {};
+        document.getElementById('policy-bounds-summary').innerHTML = `
+          <div class="p-3 rounded-xl bg-white/5 space-y-1.5">
+            <div class="flex justify-between"><span class="text-gray-400">Merchant:</span><span class="text-white font-bold">${data.merchant_id}</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Version:</span><span class="text-cyan-400 font-bold">v${data.version}</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Autonomous Limit:</span><span class="text-white">₹${(b.max_autonomous_inr || 0).toLocaleString()}</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Discount Ceiling:</span><span class="text-white">${b.discount_ceiling_pct}%</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Margin Floor:</span><span class="text-cyan-400 font-bold">${((b.margin_floor_pct || 0.37) * 100).toFixed(1)}%</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Policy Hash:</span><span class="text-gray-400 text-[10px]">${data.policy_hash}</span></div>
+          </div>
+        `;
+      } catch(e) {}
+    }
+
+    async function savePolicyYaml() {
+      const yaml = document.getElementById('policy-yaml-editor').value;
+      try {
+        const res = await fetch(`/api/merchants/${activeMerchant}/policy`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ yaml: yaml })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert(`Policy for ${activeMerchant} updated to version ${data.version}!`);
+          loadPolicyEditor();
+        } else {
+          alert('Failed to recompile: ' + data.detail);
+        }
+      } catch(e) {
+        alert('Network error updating policy.');
+      }
+    }
+
+    // 9. AUDIT TRAIL
+    async function loadAuditTrail() {
+      const container = document.getElementById('audit-log-container');
+      try {
+        const res = await fetch('/api/audit/replay');
+        const data = await res.json();
+        const atoms = data.atoms || [];
+        const contradictions = data.contradictions || [];
+
+        document.getElementById('audit-contradiction-badge').textContent = `${contradictions.length} Contradictions`;
+
+        if (atoms.length === 0) {
+          container.innerHTML = '<div class="text-center py-12 text-gray-500 font-mono text-xs">No audit atoms recorded yet.</div>';
+          return;
+        }
+
+        container.innerHTML = atoms.map(a => `
+          <div class="p-3 rounded-xl bg-white/5 border border-white/10 font-mono text-xs space-y-1.5">
+            <div class="flex justify-between items-center">
+              <span class="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 font-bold text-[10px] uppercase">${a.atom_type}</span>
+              <span class="text-gray-400 text-[10px]">${new Date((a.timestamp || a.created_at) * 1000).toLocaleTimeString()}</span>
+            </div>
+            <div class="text-[11px] text-gray-300 flex justify-between">
+              <span>Hash: <strong class="text-white">${a.atom_hash || a.provenance_hash || '0x...'}</strong></span>
+              <span class="text-gray-400">Prev: ${a.prev_hash ? a.prev_hash.slice(0, 10) + '...' : 'GENESIS'}</span>
+            </div>
+            <pre class="text-[10px] text-gray-400 bg-[#070a12] p-2 rounded overflow-x-auto">${JSON.stringify(a.payload, null, 2)}</pre>
+          </div>
+        `).join('');
+      } catch(e) {
+        container.innerHTML = '<div class="text-center py-12 text-rose-400 font-mono text-xs">Failed to load audit trail.</div>';
+      }
+    }
+
+    // ON LOAD
+    window.addEventListener('DOMContentLoaded', () => {
+      initChart();
+      connectWebSocket();
+      loadApprovals();
+    });
+  </script>
+</body>
+</html>

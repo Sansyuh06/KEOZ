@@ -1,0 +1,45 @@
+# examples/merchant_bigco.yaml
+version: "1.0"
+merchant: "bigco-enterprise"
+authorization:
+  max_autonomous_inr: 2000000            # Higher autonomous limit (₹20 Lakhs)
+  discount_ceiling_pct: 15.0             # More generous concession (15%)
+  margin_floor_pct: 0.30                 # Lower margin floor (30%)
+  require_human_approval_when:
+    - "amount_inr > 2000000"
+    - "customer_tier == 'new'"
+    - "payment_instrument == 'net_90'"
+products:
+  - id: "pro_annual"
+    name: "BigCo Pro License"
+    min_price_inr: 40000
+    list_price_inr: 50000
+    unit_cost_inr: 25000
+    max_seats_per_transaction: 200
+    auto_renew: true
+  - id: "enterprise"
+    name: "BigCo Enterprise Platform"
+    min_price_inr: 120000
+    list_price_inr: 180000
+    unit_cost_inr: 70000
+    max_seats_per_transaction: 1000
+    requires_human_approval: false
+payment:
+  accepted_instruments:
+    - "card"
+    - "upi_mandate"
+    - "x402"
+    - "razorpay_payment_link"
+    - "net_30"
+  settlement_currency: "INR"
+refund:
+  agent_initiated_allowed: false
+  max_refund_pct: 20.0
+  requires_human_approval: true
+agent_identity:
+  require_signed_token: true
+  trusted_principals:
+    - "acme-corp"
+    - "bigco-procurement"
+    - "enterprise-agent-hub"
+  max_commitment_per_agent_inr: 10000000

@@ -3,12 +3,13 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "agentpolicy"
+name = "keoz"
 version = "1.0.0"
-description = "Merchant-Side Financial Policy Layer for Agentic Commerce"
+description = "KEOZ — The Merchant Command Center for Agentic Commerce (Razorpay & ACP)"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "aiosqlite>=0.20.0",
     "fastapi>=0.100.0",
     "uvicorn>=0.22.0",
     "pydantic>=2.0.0",
@@ -19,7 +20,8 @@ dependencies = [
 ]
 
 [project.scripts]
-agentpolicy = "agentpolicy.cli:main"
+keoz = "keoz.cli:main"
+agentpolicy = "keoz.cli:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
