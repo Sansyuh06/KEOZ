@@ -9,20 +9,15 @@ from dataclasses import dataclass, asdict
 
 logger = logging.getLogger(__name__)
 
-EXTRACTION_SYSTEM_PROMPT = """You are a natural-language offer parser for an agentic commerce gateway.
-Your job is to parse the buyer's natural language request and extract commercial parameters into JSON format:
-{
-  "product_id": string or null,
-  "proposed_price_inr": integer or null,
-  "quantity": integer or null,
-  "terms": object with payment terms (e.g. {"payment": "net_30"}),
-  "intent": "purchase" | "renew" | "refund" | "negotiate",
-  "confidence": float between 0.0 and 1.0
-}
-CRITICAL RULES:
-- Convert Lakhs/L/k into full integers (e.g. "45k" -> 45000, "1.8L" -> 180000, "₹42,000" -> 42000).
-- Do NOT negotiate, make commercial decisions, or change any terms.
-- Output ONLY valid JSON, with no explanation or preamble."""
+EXTRACTION_SYSTEM_PROMPT = """Parse this buyer message into structured JSON. Output ONLY JSON.
+Extract: product_id, proposed_price_inr (int), quantity (int), terms (object), intent (purchase/renew/refund/negotiate).
+Rules:
+- Price in INR (convert "45k" -> 45000, "1.8L" -> 180000, "₹42,000" -> 42000).
+- Quantity as integer.
+- Terms: payment terms like {"payment": "net_30"}.
+- Intent: purchase, renew, refund, or negotiate.
+- Confidence: float between 0.0 and 1.0.
+Output ONLY JSON."""
 
 
 @dataclass
@@ -46,7 +41,7 @@ class ParsedOffer:
 
 
 class LLMOfferParser:
-    """Parses natural language buyer offers into structured parameters via Gemini / Anthropic LLM (with deterministic fallback)."""
+    """Parses natural language buyer offers into structured parameters via Gemini / Anthropic LLM with deterministic fallback."""
 
     def __init__(
         self,
@@ -58,44 +53,80 @@ class LLMOfferParser:
         self.anthropic_api_key = os.environ.get("ANTHROPIC_API_KEY")
 
         if api_key:
-            if api_key.startswith("AQ.") or api_key.startswith("AIza"):
+            if api_key.startswith("AQ.") or api_key.startswith("AIza") or (provider == "gemini"):
                 self.gemini_api_key = api_key
-            elif api_key.startswith("sk-ant"):
+            elif api_key.startswith("sk-ant") or (provider == "anthropic"):
                 self.anthropic_api_key = api_key
 
+        self.api_key = self.gemini_api_key or self.anthropic_api_key
         self.provider = provider or ("gemini" if self.gemini_api_key else ("anthropic" if self.anthropic_api_key else None))
-        self.model = model
-        self.enabled = bool(self.gemini_api_key or self.anthropic_api_key)
+        self.model = model or ("gemini-1.5-flash" if self.provider == "gemini" else "claude-3-5-sonnet-20241022")
+        self.enabled = bool(self.api_key)
+        self._gemini_client = None
+        self._anthropic_client = None
+
+        if self.enabled:
+            # Check for google-generativeai SDK
+            if self.provider == "gemini" and self.gemini_api_key:
+                try:
+                    import google.generativeai as genai
+                    genai.configure(api_key=self.gemini_api_key)
+                    self._gemini_client = genai.GenerativeModel(self.model)
+                except Exception:
+                    pass
+            # Check for anthropic SDK
+            elif self.provider == "anthropic" and self.anthropic_api_key:
+                try:
+                    import anthropic
+                    self._anthropic_client = anthropic.Anthropic(api_key=self.anthropic_api_key)
+                except Exception:
+                    pass
 
     def parse(self, raw_text: str, default_product_id: str = "pro_annual") -> ParsedOffer:
         """Synchronously parse natural language offer into structured ParsedOffer."""
         if not raw_text or not raw_text.strip():
             return ParsedOffer(product_id=default_product_id, quantity=1, terms={}, raw_text=raw_text or "")
 
-        # 1. Try Gemini REST / Client if key is available
-        if self.gemini_api_key:
+        prompt = f"""{EXTRACTION_SYSTEM_PROMPT}
+
+Message: "{raw_text}"
+"""
+        # Try Gemini SDK if initialized
+        if self._gemini_client:
+            try:
+                response = self._gemini_client.generate_content(prompt)
+                text = response.text.strip().strip("```json").strip("```")
+                parsed = json.loads(text)
+                return self._build_offer(parsed, raw_text, default_product_id, confidence=0.95)
+            except Exception as e:
+                logger.debug(f"Gemini SDK parse failed: {e}")
+
+        # Try Anthropic SDK if initialized
+        if self._anthropic_client:
+            try:
+                response = self._anthropic_client.messages.create(
+                    model=self.model,
+                    max_tokens=500,
+                    messages=[{"role": "user", "content": prompt}]
+                )
+                text = response.content[0].text.strip().strip("```json").strip("```")
+                parsed = json.loads(text)
+                return self._build_offer(parsed, raw_text, default_product_id, confidence=0.95)
+            except Exception as e:
+                logger.debug(f"Anthropic SDK parse failed: {e}")
+
+        # Try direct Gemini REST API
+        if self.enabled and self.gemini_api_key:
             try:
                 import requests
-                model_name = self.model or "gemini-1.5-flash"
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={self.gemini_api_key}"
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.gemini_api_key}"
                 payload = {
-                    "contents": [
-                        {
-                            "role": "user",
-                            "parts": [
-                                {"text": f"{EXTRACTION_SYSTEM_PROMPT}\n\nBuyer request: {raw_text}"}
-                            ]
-                        }
-                    ],
-                    "generationConfig": {
-                        "responseMimeType": "application/json",
-                        "temperature": 0.0
-                    }
+                    "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+                    "generationConfig": {"responseMimeType": "application/json", "temperature": 0.0}
                 }
                 resp = requests.post(url, json=payload, timeout=3.0)
                 if resp.status_code == 200:
-                    resp_json = resp.json()
-                    candidates = resp_json.get("candidates", [])
+                    candidates = resp.json().get("candidates", [])
                     if candidates:
                         text_content = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
                         clean_json = re.search(r"\{.*\}", text_content, re.DOTALL)
@@ -103,38 +134,9 @@ class LLMOfferParser:
                             parsed = json.loads(clean_json.group(0))
                             return self._build_offer(parsed, raw_text, default_product_id, confidence=0.95)
             except Exception as e:
-                logger.debug(f"Gemini LLM call failed, falling back: {e}")
+                logger.debug(f"Gemini REST parse failed: {e}")
 
-        # 2. Try Anthropic REST if key is available
-        if self.anthropic_api_key:
-            try:
-                import requests
-                headers = {
-                    "x-api-key": self.anthropic_api_key,
-                    "anthropic-version": "2023-06-01",
-                    "content-type": "application/json"
-                }
-                payload = {
-                    "model": self.model or "claude-3-5-sonnet-20241022",
-                    "max_tokens": 512,
-                    "system": EXTRACTION_SYSTEM_PROMPT,
-                    "messages": [
-                        {"role": "user", "content": f"Buyer request: {raw_text}"}
-                    ]
-                }
-                resp = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=payload, timeout=3.0)
-                if resp.status_code == 200:
-                    resp_json = resp.json()
-                    content = resp_json.get("content", [{}])[0].get("text", "")
-                    clean_json = re.search(r"\{.*\}", content, re.DOTALL)
-                    if clean_json:
-                        parsed = json.loads(clean_json.group(0))
-                        return self._build_offer(parsed, raw_text, default_product_id, confidence=0.95)
-            except Exception as e:
-                logger.debug(f"Anthropic LLM call failed, using deterministic fallback: {e}")
-
-        # 3. Deterministic Regex / Heuristic Fallback (Guaranteed 100% reliable)
-        return self._deterministic_fallback(raw_text, default_product_id)
+        return self._fallback_parse(raw_text, default_product_id)
 
     async def parse_async(self, raw_text: str, default_product_id: str = "pro_annual") -> ParsedOffer:
         """Async parse method."""
@@ -151,8 +153,8 @@ class LLMOfferParser:
             raw_text=raw_text
         )
 
-    def _deterministic_fallback(self, text: str, default_product_id: str) -> ParsedOffer:
-        """Deterministic extraction for common commercial & procurement phrases."""
+    def _fallback_parse(self, text: str, default_product_id: str = "pro_annual") -> ParsedOffer:
+        """Deterministic extraction for common commercial & procurement phrases (Indian currency & terms)."""
         clean = text.lower()
         terms: Dict[str, Any] = {}
 

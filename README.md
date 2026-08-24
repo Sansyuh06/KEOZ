@@ -1,4 +1,13 @@
-Hugging Face: https://huggingface.co/spaces/Sansyuh/keoz
+---
+title: Keoz
+emoji: 🛡️
+colorFrom: blue
+colorTo: indigo
+sdk: gradio
+sdk_version: 4.44.0
+app_file: app.py
+pinned: false
+short_description: Merchant Command Center for Agentic Commerce
 ---
 
 # KEOZ
@@ -46,6 +55,23 @@ Here is how KEOZ handles it:
    - Layer 3: Calculate composed deal margin (unit cost + payment financing cost).
    - Layer 4: Route high-value or credit orders to human approval inbox.
 4. **Payment & Audit**: Settles on Razorpay and records a SHA-256 hash-chained atom into local SQLite (`.keoz/keoz.db`).
+
+---
+
+## LLM Parsing: Real + Deterministic Fallback
+
+- **Real LLM**: Set `GEMINI_API_KEY` or `ANTHROPIC_API_KEY` for natural language parsing.
+- **Fallback**: Regex parser — zero external dependencies, 100% reproducible, zero latency.
+- **Philosophy**: "LLM parses, code disposes" — LLMs never make financial or authorization decisions.
+
+---
+
+## Security Model
+
+- **JWT**: HS256 (test mode) -> RS256 (production mode).
+- **Secrets**: Per-principal via `AgentIdentityVerifier(secrets={"acme-corp": "prod-secret"})`.
+- **Default Secret**: Dev only (`dev-only-change-in-production`) — raises a warning if used when `ENVIRONMENT=production`.
+- **Status Codes**: HTTP 202 for async human approval routing, HTTP 402 exclusively for x402 payment requirements.
 
 ---
 
