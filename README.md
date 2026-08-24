@@ -50,6 +50,21 @@ Here is how KEOZ handles it:
 
 ---
 
+## OpenEnv Simulation & Agent Fine-Tuning (DPO / SFT / GRPO)
+
+KEOZ includes a Gymnasium/OpenEnv-compliant reinforcement learning environment (`KeozCommerceEnv`) for simulating multi-agent negotiations and generating training datasets for fine-tuning LLMs on Hugging Face:
+
+- **OpenEnv Environment (`keoz/openenv/env.py`)**: Models multi-turn procurement counter-offers with reward functions penalizing margin floor breaches and rewarding autonomous deal closing within merchant policy.
+- **DPO Trajectory Generator (`keoz/openenv/trajectories.py`)**: Automatically synthesizes Direct Preference Optimization (DPO) datasets containing `chosen` (policy-compliant bounded counters with privacy buffers) vs `rejected` (margin-draining or secret-leaking hallucinated offers).
+- **Hugging Face Fine-Tuning Pipeline (`keoz/openenv/train_dpo.py`)**: Direct integration with Hugging Face `trl` (`DPOTrainer`) to fine-tune models like Llama-3 / Qwen / Mistral into policy-aware commercial agents.
+
+```bash
+# Generate 200 synthetic DPO negotiation trajectories
+python -m keoz.openenv.train_dpo --num_samples 200 --generate_only
+```
+
+---
+
 ## Why Hugging Face Spaces? (Public Cloud Gateway & ACP Verification)
 
 KEOZ is deployed live to Hugging Face Spaces at **[https://huggingface.co/spaces/Sansyuh/keoz](https://huggingface.co/spaces/Sansyuh/keoz)** for three critical architectural reasons:
@@ -174,6 +189,7 @@ payment:
 
 ## Project Layout
 
+- `keoz/openenv/` - Gymnasium OpenEnv RL environment, trajectory synthesis, and DPO fine-tuning pipeline
 - `keoz/gateway/` - 4-layer authorization, identity verification, and human approval queue
 - `keoz/negotiation/` - LLM parser and deterministic bounds clamp
 - `keoz/payments/` - Razorpay integration and x402 protocol handler
@@ -183,4 +199,4 @@ payment:
 - `keoz/storage.py` - SQLite persistence layer (`.keoz/keoz.db`)
 - `keoz/registry.py` - Multi-merchant policy registry
 - `run_demo.py` - 3-minute terminal demo
-- `tests/` - 25 automated pytest tests
+- `tests/` - 28 automated pytest tests
