@@ -3,9 +3,6 @@
 **The Merchant Command Center for Agentic Commerce**  
 *Built for the Razorpay Hackathon 2026 — Track 01: AI Growth & Agentic Commerce*
 
-[![Tests](https://img.shields.io/badge/pytest-25%20passed-10b981.svg)](tests/)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-38bdf8.svg)](https://python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-06b6d4.svg)](https://fastapi.tiangolo.com)
 
 ---
 
