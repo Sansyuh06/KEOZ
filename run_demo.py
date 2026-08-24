@@ -159,21 +159,21 @@ def main():
     console.print(f"  * Contradictions Detected: [bold green]{len(audit_data.get('contradictions', []))}[/bold green] (Zero Invariant Violations)")
 
     console.print(Panel(
-        "[bold green]KEOZ Command Center Online & Operational[/bold green]\n\n"
+        "[bold green]KEOZ Command Center Online & Live[/bold green]\n\n"
         f"• [bold white]Interactive Merchant Command Center:[/bold white] [link]{base_url}[/link]\n"
         f"• [bold white]Live WebSocket Metrics Feed:[/bold white] [link]{base_url}/ws/metrics[/link]\n"
         f"• [bold white]ACP Agent Manifest:[/bold white] [link]{base_url}/.well-known/agent-commerce.json[/link]\n"
-        f"• [bold white]Interactive API Documentation:[/bold white] [link]{base_url}/docs[/link]\n",
+        f"• [bold white]Interactive API Documentation:[/bold white] [link]{base_url}/docs[/link]\n\n"
+        "[bold yellow]👉 The server is running live! Open http://127.0.0.1:8000 in your browser. (Press Ctrl+C to exit)[/bold yellow]",
         title="[bold cyan]KEOZ System Summary[/bold cyan]"
     ))
 
-    # Keep alive if executed interactively with flag
-    if len(sys.argv) > 1 and sys.argv[1] == "--keep-alive":
-        try:
-            while True:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            console.print("\n[bold red]Server stopped.[/bold red]")
+    # Keep server running so user can browse and test in browser
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        console.print("\n[bold red]KEOZ server stopped.[/bold red]")
 
 
 if __name__ == "__main__":
