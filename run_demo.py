@@ -19,6 +19,7 @@ from keoz.server.app import create_app
 from keoz.gateway.agent_identity import AgentIdentityVerifier
 from keoz.registry import registry
 from keoz.negotiation.llm_parser import LLMOfferParser
+from keoz.payments.x402_handler import X402Handler
 
 console = Console(highlight=False)
 
@@ -116,13 +117,18 @@ def main():
     # STEP 6: RAZORPAY / x402 PAYMENT EXECUTION
     console.print("\n[bold yellow]STEP 6: Executing x402 Cryptographic Proof & Razorpay Settlement[/bold yellow]")
     deal_total = acme_data.get("counter_price_inr", 46500) * 50
+    crypto_proof = X402Handler.generate_proof(
+        amount_inr=deal_total,
+        merchant_id="acme-saas",
+        payer_id="enterprise-procurement-bot-01"
+    )
     pay_resp = requests.post(
         f"{base_url}/api/agent/pay",
         json={
             "product_id": "pro_annual",
             "quantity": 50,
             "amount_inr": deal_total,
-            "x402_proof": "0x4a8f9b2c0192837465efab1092837465deadbeef",
+            "x402_proof": crypto_proof,
             "buyer_id": "enterprise-procurement-bot-01",
             "merchant_id": "acme-saas"
         }
