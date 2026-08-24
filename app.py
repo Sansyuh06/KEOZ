@@ -14,7 +14,12 @@ if sys.platform == "win32":
     except Exception:
         pass
 
-import gradio as gr
+try:
+    import gradio as gr
+    HAS_GRADIO = True
+except ImportError:
+    gr = None
+    HAS_GRADIO = False
 
 
 # ── Lazy-load KEOZ internals (so Gradio UI loads fast) ──────────────────────
