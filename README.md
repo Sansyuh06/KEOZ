@@ -206,4 +206,4 @@ payment:
 - `keoz/storage.py` - SQLite persistence layer (`.keoz/keoz.db`)
 - `keoz/registry.py` - Multi-merchant policy registry
 - `run_demo.py` - 3-minute terminal demo
-- `tests/` - 28 automated pytest tests
+- `tests/` - 31 automated pytest tests
