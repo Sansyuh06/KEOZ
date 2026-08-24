@@ -1,7 +1,7 @@
 import pytest
-from agentpolicy.policy.dsl import PolicyDSL
-from agentpolicy.policy.compiler import PolicyCompiler
-from agentpolicy.policy.models import MerchantPolicy, ProductConfig
+from keoz.policy.dsl import PolicyDSL
+from keoz.policy.compiler import PolicyCompiler
+from keoz.policy.models import MerchantPolicy, ProductConfig
 
 
 def test_policy_dsl_validation():

@@ -1,4 +1,4 @@
-from agentpolicy.memory.audit_logger import AuditLogger
+from keoz.memory.audit_logger import AuditLogger
 
 
 def test_audit_logger_hash_chain():

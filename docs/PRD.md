@@ -1,8 +1,8 @@
-# AgentPolicy — Product Requirements Document
+# KEOZ — Product Requirements Document
 
-> **Product:** AgentPolicy — Merchant-Side Financial Policy Layer for Agentic Commerce  
+> **Product:** KEOZ — The Merchant Command Center for Agentic Commerce  
 > **Track:** 01 — AI Growth & Agentic Commerce (Razorpay Hackathon)  
-> **Version:** 1.1 (Production & Submission Ready)
+> **Version:** 1.0 (Production & Submission Ready)
 
 ---
 
@@ -12,12 +12,12 @@
 Merchants configure commercial rules for human interactions (dashboards, email approvals, spreadsheets, sales desks) but have **no machine-readable policy layer** to govern autonomous AI buyers. When enterprise procurement bots or autonomous agents attempt to purchase, negotiate, or subscribe, merchants face an unacceptable binary choice: **reject autonomous transactions entirely** or **accept unconstrained financial risk**.
 
 ### 1.2 Solution Overview
-**AgentPolicy** is a declarative financial policy engine that establishes enforceable commercial boundaries for agentic commerce:
-- **Compiles** merchant rules (`agentpolicy.yaml`) into deterministic runtime bounds.
+**KEOZ** is a declarative financial policy engine and command center that establishes enforceable commercial boundaries for agentic commerce:
+- **Compiles** merchant rules (`keoz.yaml`) into deterministic runtime bounds.
 - **Executes** bounded negotiation where LLMs extract natural-language intent while deterministic code clamps prices, volumes, and terms.
 - **Enforces** a 4-layer Authorization Gateway (Agent Identity, Parameter Bounds, Composed Margin Floor, and Human Approval Routing) before any payment executes.
 - **Interfaces** natively with Razorpay test-mode Orders, Payment Links, and x402 payment proof protocols.
-- **Logs** an immutable, hash-chained audit trail (*memoriagrain*) tying every transaction to its governing policy version.
+- **Logs** an immutable, SQLite-backed hash-chained audit trail tying every transaction to its governing policy version.
 
 ### 1.3 Core Insight
 > It is not "catalog transformation." It is **delegated financial authority.**
@@ -34,10 +34,10 @@ Merchants configure commercial rules for human interactions (dashboards, email a
 - **Merchant Trust Deficit**: Existing checkout flows require human intervention for custom volume, Net-30 credit terms, or discounted renewals. Without machine-readable commercial boundaries, merchants cannot expose autonomous checkout endpoints to third-party bots without risking margin drain.
 
 ### 2.2 Verified Merchant Pain Points
-| Commercial Risk | Real-World Failure Mode | AgentPolicy Defense |
+| Commercial Risk | Real-World Failure Mode | KEOZ Defense |
 |---|---|---|
 | **Sub-Floor Price Extraction** | Bot negotiates pricing below acceptable cost thresholds. | Hard floor price clamp + strategic privacy buffer. |
-| **Composed Margin Drain** | Multi-variable concessions (e.g., 8% discount + Net-90 terms) pass individually but result in a margin-negative deal. | Composed-Deal Validator (`effective_margin ≥ margin_floor`). |
+| **Composed Margin Drain** | Multi-variable concessions (e.g., 8% discount + Net-90 terms) pass individually but result in a margin-negative deal. | Composed-Deal Validator (`effective_margin >= margin_floor`). |
 | **Unauthorized Credit Terms** | Bot demands Net-30/Net-60 terms without financial credit review. | Async Human Escalation (HTTP `202 Accepted` + `approval_url`). |
 | **Runaway Bot Spend** | Compromised bot attempts high-value unauthorized transactions. | JWS Agent Token verification + maximum commitment caps. |
 | **Autonomous Refund Risk** | Bot triggers unverified post-purchase refund chargebacks. | Policy directive: `agent_initiated_allowed: false`. |
@@ -49,12 +49,12 @@ Merchants configure commercial rules for human interactions (dashboards, email a
 ### 3.1 Policy-First System Flow
 
 ```
-AI BUYER REQUEST ("Buy 50 Pro seats, Net-30, ₹4,200/seat")
+AI BUYER REQUEST ("Buy 50 Pro seats, Net-30, ₹42,000/seat")
        │
        ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 1. POLICY ENGINE (First — Defines the Bounds)                │
-│ • Compiles agentpolicy.yaml into NegotiationBounds          │
+│ 1. POLICY ENGINE (Defines the Bounds)                       │
+│ • Compiles keoz.yaml into NegotiationBounds                 │
 │ • Floor: ₹45,000 | Discount Cap: 8% | Margin Floor: 37%     │
 │ • Net-terms → requires_human_approval escalation            │
 └──────────────────────────────┬──────────────────────────────┘
@@ -84,35 +84,36 @@ AI BUYER REQUEST ("Buy 50 Pro seats, Net-30, ₹4,200/seat")
                └───────────────┬───────────────┘
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 4. IMMUTABLE AUDIT TRAIL (memoriagrain)                      │
+│ 4. IMMUTABLE AUDIT TRAIL (SQLite + SHA-256)                 │
 │ • Cryptographically hash-chained decision atoms             │
 │ • policy_version, bounds, proposals, approvals, settlement  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### 3.2 Key Architectural Components
-1. **Policy Engine (`agentpolicy/policy/`)**: Validates YAML schema, calculates deterministic SHA-256 policy hashes, and compiles ACP discovery manifests, x402 configs, and OpenAPI 3.1 specifications.
-2. **Bounded Negotiator (`agentpolicy/negotiation/`)**: Employs Anthropic LLM parsing for unstructured buyer text with deterministic regex fallback. All mathematical pricing, clamping, and privacy buffering are executed in pure code.
-3. **Authorization Gateway (`agentpolicy/gateway/`)**: A 4-layer defense pipeline verifying counterparty identity, parameter constraints, overall transaction margin, and approval triggers.
-4. **Payment Gateway (`agentpolicy/payments/`)**: Manages Razorpay test-mode API integration (Orders and Payment Links) and verifies cryptographic x402 payment proofs.
-5. **Audit Memory (`agentpolicy/memory/`)**: Append-only hash-chained provenance log (*memoriagrain*) with real-time replay and contradiction detection.
+1. **Policy Engine (`keoz/policy/`)**: Validates YAML schema, calculates deterministic SHA-256 policy hashes, and compiles ACP discovery manifests, x402 configs, and OpenAPI 3.1 specifications.
+2. **Bounded Negotiator (`keoz/negotiation/`)**: Employs LLM parsing for unstructured buyer text with deterministic regex fallback. All mathematical pricing, clamping, and privacy buffering are executed in pure code.
+3. **Authorization Gateway (`keoz/gateway/`)**: A 4-layer defense pipeline verifying counterparty identity, parameter constraints, overall transaction margin, and approval triggers.
+4. **Payment Gateway (`keoz/payments/`)**: Manages Razorpay test-mode API integration (Orders and Payment Links) and verifies cryptographic x402 payment proofs.
+5. **Audit Memory (`keoz/memory/`)**: Append-only hash-chained provenance log backed by SQLite with real-time replay and contradiction detection.
+6. **OpenEnv RL Suite (`keoz/openenv/`)**: Gymnasium-compatible environment for agent simulation, DPO dataset generation, and commercial agent fine-tuning.
 
 ---
 
-## 4. Policy DSL Specification (`agentpolicy.yaml`)
+## 4. Policy DSL Specification (`keoz.yaml`)
 
 ```yaml
 version: "1.0"
-merchant: "acme-cloud-solutions"
+merchant: "acme-saas"
 
 authorization:
   max_autonomous_inr: 500000        # Max spend without human signoff (₹5 Lakhs)
-  discount_ceiling_pct: 8           # Maximum allowable discount concession (8%)
+  discount_ceiling_pct: 8.0         # Maximum allowable discount concession (8%)
   margin_floor_pct: 0.37            # 37% composed margin floor (secret, never leaked)
   require_human_approval_when:
-    - amount_inr > 500000
-    - customer_tier == "new"
-    - payment_instrument == "net_terms"
+    - "amount_inr > 500000"
+    - "customer_tier == 'new'"
+    - "payment_instrument == 'net_terms'"
 
 products:
   - id: "pro_annual"
@@ -132,17 +133,24 @@ products:
     requires_human_approval: true
 
 payment:
-  accepted_instruments: ["card", "upi_mandate", "x402", "razorpay_payment_link"]
+  accepted_instruments:
+    - "card"
+    - "upi_mandate"
+    - "x402"
+    - "razorpay_payment_link"
   settlement_currency: "INR"
 
 refund:
   agent_initiated_allowed: false
-  max_refund_pct: 15
+  max_refund_pct: 15.0
   requires_human_approval: true
 
 agent_identity:
   require_signed_token: true
-  trusted_principals: ["acme-corp", "bigco-procurement", "enterprise-agent-hub"]
+  trusted_principals:
+    - "acme-corp"
+    - "bigco-procurement"
+    - "enterprise-agent-hub"
   max_commitment_per_agent_inr: 5000000
 ```
 
@@ -159,7 +167,7 @@ agent_identity:
   ```json
   // Request
   {
-    "raw_text": "Buy 50 Pro annual seats, net-30, ₹4,200/seat",
+    "raw_text": "Buy 50 Pro annual seats, net-30, ₹42,000/seat",
     "product_id": "pro_annual",
     "quantity": 50,
     "proposed_price_inr": 42000,
@@ -218,26 +226,24 @@ agent_identity:
 
 ## 6. Live Demo Script (3-Minute Walkthrough)
 
-| Timestamp | Action / Beat | Narration & Key Message |
+| Step | Action | Key Message |
 |---|---|---|
-| **0:00 – 0:30** | The Problem & Setup | *"Agentic commerce is here, but merchants have no machine-readable way to delegate financial authority. AgentPolicy compiles merchant rules into hard runtime boundaries."* |
-| **0:30 – 1:00** | Policy Compilation | Run `agentpolicy compile examples/agentpolicy.yaml`. Show generated ACP discovery manifest and x402 endpoints. |
-| **1:00 – 1:45** | AI Buyer Negotiation | Buyer requests 50 seats @ ₹42,000 on Net-30. *"Notice: the engine never counters at ₹42,000. Floor ₹45,000 + 3% privacy buffer is applied. Net-30 triggers HTTP 202 async human escalation."* |
-| **1:45 – 2:15** | Human Approval & Razorpay | Finance lead clicks **Approve** in the dashboard. x402 cryptographic proof verified; Razorpay Order created and captured. |
-| **2:15 – 2:45** | 6-Attack Red Team Suite | Trigger red-team suite: Deep discount, Volume flood, Forbidden terms, Refund demand, Overspend, and Composed margin attacks — all 100% neutralized with zero secret leaks. |
-| **2:45 – 3:00** | Audit Replay | Run `agentpolicy audit`. Verify cryptographically hash-chained provenance trail with 0 contradictions. |
+| **Step 1** | Multi-Merchant Registry | Shows strict SaaS (ACME) vs generous Enterprise (BigCo) policies loaded dynamically. |
+| **Step 2** | Server Init | Starts FastAPI command center on port 8000. |
+| **Step 3** | Natural Language LLM Parsing | "LLM proposes, code disposes" - parses ₹42k, 50 seats, net-30. |
+| **Step 4** | Differentiated Outcomes | Same buyer proposal gets 202 on ACME (exceeds ₹5L limit) vs 200 on BigCo (₹20L limit). |
+| **Step 5** | Human Approval Flow | Finance lead approves via dashboard, persisted to SQLite. |
+| **Step 6** | Payment & Settlement | Razorpay order created and x402 payment proof verified. |
+| **Step 7** | 6-Attack Red Team Suite | Neutralizes all 6 attacks (deep discount, volume flood, forbidden terms, refund demand, overspend, composed margin drain). |
+| **Step 8** | Immutable Audit Trail | Replays hash-chained SQLite decision atoms with 0 contradictions. |
 
 ---
 
 ## 7. Submission Checklist
 
-- [x] **Source Code**: Fully modularized Python package (`agentpolicy/`) with CLI, server, gateway, and payments modules.
-- [x] **Test Coverage**: 19 automated unit & integration tests passing (`pytest tests/ -v`).
+- [x] **Source Code**: Fully modularized Python package (`keoz/`) with CLI, server, gateway, OpenEnv, and payments modules.
+- [x] **Test Coverage**: 31 automated unit & integration tests passing (`pytest tests/ -v`).
 - [x] **Adversarial Hardening**: Complete 6-attack red team suite verifying parameter clamping, margin floor defense, and secret isolation.
 - [x] **Razorpay Integration**: Real test-mode API integration (`is_live` mode with Basic Auth) and simulation fallback.
 - [x] **Interactive Dashboard**: Modern dark-mode web portal for live policy editing, approval queue management, and test-bench execution.
-- [x] **Documentation**: Clean README, architecture specifications, and verified Product Requirements Document.
-
----
-
-*End of PRD — AgentPolicy v1.1*
+- [x] **OpenEnv / Hugging Face Spaces**: Gymnasium-compatible RL environment + DPO dataset generator + interactive Gradio Spaces app.

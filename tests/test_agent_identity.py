@@ -1,4 +1,4 @@
-from agentpolicy.gateway.agent_identity import AgentIdentityVerifier
+from keoz.gateway.agent_identity import AgentIdentityVerifier
 
 
 def test_agent_identity_token_verification():

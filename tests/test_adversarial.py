@@ -7,12 +7,12 @@ unit COGS, or margin percentages) in external responses.
 
 import pytest
 from pathlib import Path
-from agentpolicy.policy.compiler import PolicyCompiler
-from agentpolicy.policy.dsl import PolicyDSL
-from agentpolicy.policy.models import BuyerRequest
-from agentpolicy.gateway.authorizer import AuthorizationGateway
-from agentpolicy.negotiation.orchestrator import BoundedNegotiationOrchestrator
-from agentpolicy.examples_helper import run_attack_suite_helper
+from keoz.policy.compiler import PolicyCompiler
+from keoz.policy.dsl import PolicyDSL
+from keoz.policy.models import BuyerRequest
+from keoz.gateway.authorizer import AuthorizationGateway
+from keoz.negotiation.orchestrator import BoundedNegotiationOrchestrator
+from keoz.examples_helper import run_attack_suite_helper
 
 SECRET_FLOOR_PRICE = 45000
 SECRET_UNIT_COST = 28350
@@ -21,7 +21,7 @@ SECRET_MARGIN_FLOOR = 0.37
 
 @pytest.fixture
 def policy_bundle_and_gateway():
-    yaml_path = Path("examples/agentpolicy.yaml")
+    yaml_path = Path("examples/merchant_acme.yaml")
     policy = PolicyDSL.load_from_yaml(yaml_path)
     bundle = PolicyCompiler.compile(policy)
     gateway = AuthorizationGateway()

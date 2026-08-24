@@ -21,7 +21,6 @@ dependencies = [
 
 [project.scripts]
 keoz = "keoz.cli:main"
-agentpolicy = "keoz.cli:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

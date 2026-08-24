@@ -1,6 +1,6 @@
-from agentpolicy.gateway.composed_validator import ComposedDealValidator
-from agentpolicy.policy.compiler import PolicyCompiler
-from agentpolicy.policy.models import MerchantPolicy, ProductConfig
+from keoz.gateway.composed_validator import ComposedDealValidator
+from keoz.policy.compiler import PolicyCompiler
+from keoz.policy.models import MerchantPolicy, ProductConfig
 
 
 def test_composed_deal_margin_floor():

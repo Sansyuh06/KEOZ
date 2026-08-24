@@ -47,4 +47,4 @@ if __name__ == "__main__":
         report = runner.run_suite()
         print(json.dumps(report, indent=2))
     except Exception:
-        print(f"Server not running at {runner.base_url}. Start server with 'python -m agentpolicy.cli serve'")
+        print(f"Server not running at {runner.base_url}. Start server with 'python -m keoz.cli serve'")

@@ -1,7 +1,7 @@
 """Unit tests for Razorpay Client live API calls and simulation fallback."""
 
 from unittest.mock import patch, MagicMock
-from agentpolicy.payments.razorpay_client import RazorpayClient
+from keoz.payments.razorpay_client import RazorpayClient
 
 
 def test_razorpay_simulation_fallback():

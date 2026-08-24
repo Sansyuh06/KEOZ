@@ -1,7 +1,7 @@
-from agentpolicy.negotiation.bounds import BoundsClamp
-from agentpolicy.negotiation.orchestrator import BoundedNegotiationOrchestrator
-from agentpolicy.policy.compiler import PolicyCompiler
-from agentpolicy.policy.models import MerchantPolicy, ProductConfig, BuyerRequest
+from keoz.negotiation.bounds import BoundsClamp
+from keoz.negotiation.orchestrator import BoundedNegotiationOrchestrator
+from keoz.policy.compiler import PolicyCompiler
+from keoz.policy.models import MerchantPolicy, ProductConfig, BuyerRequest
 
 
 def test_bounds_clamp_and_privacy_buffer():
@@ -75,7 +75,7 @@ def test_refund_intent_declined():
 
 def test_gemini_api_parsing():
     from unittest.mock import patch, MagicMock
-    from agentpolicy.negotiation.llm_parser import LLMOfferParser
+    from keoz.negotiation.llm_parser import LLMOfferParser
 
     parser = LLMOfferParser(api_key="AQ.Ab8RN6MockTestKey", provider="gemini")
     assert parser.gemini_api_key == "AQ.Ab8RN6MockTestKey"

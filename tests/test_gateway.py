@@ -1,6 +1,6 @@
-from agentpolicy.gateway.authorizer import AuthorizationGateway
-from agentpolicy.policy.compiler import PolicyCompiler
-from agentpolicy.policy.models import MerchantPolicy, ProductConfig, BuyerRequest, NegotiationResult
+from keoz.gateway.authorizer import AuthorizationGateway
+from keoz.policy.compiler import PolicyCompiler
+from keoz.policy.models import MerchantPolicy, ProductConfig, BuyerRequest, NegotiationResult
 
 
 def test_authorization_gateway_4_layers():

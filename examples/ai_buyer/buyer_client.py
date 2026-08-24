@@ -2,7 +2,7 @@
 
 import requests
 from typing import Dict, Any, Optional
-from agentpolicy.gateway.agent_identity import AgentIdentityVerifier
+from keoz.gateway.agent_identity import AgentIdentityVerifier
 
 
 class AIBuyerClient:
